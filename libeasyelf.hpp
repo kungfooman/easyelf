@@ -190,4 +190,8 @@ public:
 	}
 }; // class cELF
 
+// That's how I want the API to look, change later in source.
+#define cSection section
+#define getFileOffset get_offset
+
 #endif

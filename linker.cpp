@@ -40,44 +40,40 @@ int memory_rwx(unsigned char *mem, int len) {
 	}
 	return 1;
 }
-// COFF format (PE-i386)
-unsigned int object_get_text_fileoffset(unsigned char *object) {
-	return *(unsigned int *)(object + 0x28); // figured out in WinHex
-}
 
 int main() {
-	unsigned char *o;
+	unsigned char *image;
 	int length;
 	
-	char *filename = (char *) "testlib.elf";
+	char *filename = (char *)"testlib.elf";
 	
-	if ( ! file_get_contents(filename, &o, &length)) {
+	if ( ! file_get_contents(filename, &image, &length)) {
 		printf("file_get_contents failed..");
 		exit(1);
 	}
 	
 	cELF *elf = new cELF(filename);
 	
-	memory_rwx(o, length);
+	memory_rwx(image, length);
 
-	//unsigned char *text = o + object_get_text_fileoffset(o);
+	//unsigned char *text = image + object_get_text_fileoffset(image);
 	int segment_text = 0x34;
-	unsigned char *text = o + segment_text;
+	section *text = elf->getSectionByName((char *)".text");
+	printf(".text section: fileoffset=%p\n", text->getFileOffset());
+	unsigned char *textptr = image + text->getFileOffset();
 	int test_a = 10;
 	int test_b = 100;
 	//*(int *)(o + 0x58 + 0x80) = (int)&ten;
 	
 	// apply relocation records for .text
-	*(int *)(o + segment_text + 0x0c) = (int)&test_a;
-	*(int *)(o + segment_text + 0x13) = (int)&test_b;
-	*(int *)(o + segment_text + 0x28) = (int)&test_a;
-	
-	printf("object_get_text_fileoffset = %.8p\n", object_get_text_fileoffset(o));
+	*(int *)(textptr + 0x0c) = (int)&test_a;
+	*(int *)(textptr + 0x13) = (int)&test_b;
+	*(int *)(textptr + 0x28) = (int)&test_a;
 
 	int (*add)(int a, int b);
 	int (*mul)(int a, int b);
-	*(int *)&add = (int)text + 0x00;
-	*(int *)&mul = (int)text + 0x1B;
+	*(int *)&add = (int)textptr + 0x00;
+	*(int *)&mul = (int)textptr + 0x1B;
 	
 	
 	//external_filehdr *header = (external_filehdr *)o;
@@ -87,6 +83,6 @@ int main() {
 
 	printf("lib.c add(2,2) = %d\n", add(2,2));
 	printf("lib.c mul(3,3) = %d\n", mul(3,3));
-	printf("length=%d o = %s", length, o);
+	printf("length=%d o = %s", length, image);
 	return 0;
 }
