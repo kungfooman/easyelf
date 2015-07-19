@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <windows.h>
 
+#include "libeasyelf.hpp"
+
 int file_get_contents(char *filename, unsigned char **out_content, int *out_filesize) {
 	FILE *file;
 	int file_size;
@@ -47,10 +49,14 @@ int main() {
 	unsigned char *o;
 	int length;
 	
-	if ( ! file_get_contents((char *)"testlib.elf", &o, &length)) {
+	char *filename = (char *) "testlib.elf";
+	
+	if ( ! file_get_contents(filename, &o, &length)) {
 		printf("file_get_contents failed..");
 		exit(1);
 	}
+	
+	cELF *elf = new cELF(filename);
 	
 	memory_rwx(o, length);
 

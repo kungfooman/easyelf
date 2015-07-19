@@ -1,3 +1,3 @@
-g++ linker.cpp -o linker.exe
+g++ linker.cpp -o linker.exe -I.
 linker.exe
 pause
