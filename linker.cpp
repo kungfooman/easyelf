@@ -72,8 +72,8 @@ int main() {
 
 	int (*add)(int a, int b);
 	int (*mul)(int a, int b);
-	*(int *)&add = (int)textptr + 0x00;
-	*(int *)&mul = (int)textptr + 0x1B;
+	*(int *)&add = (int)textptr + elf->getSymbolByName((char *)"_add")->value;
+	*(int *)&mul = (int)textptr + elf->getSymbolByName((char *)"_mul")->value;
 	
 	
 	//external_filehdr *header = (external_filehdr *)o;

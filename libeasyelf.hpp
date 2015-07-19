@@ -188,6 +188,14 @@ public:
 		}
 		return NULL;
 	}
+	
+	cSymbol *getSymbolByName(char *name) {
+		for (std::map<Elf_Half, cSymbol *>::iterator i=symbols.begin(); i != symbols.end(); i++) {
+			if ( ! strcmp(i->second->name.c_str(), name))
+				return i->second;
+		}
+		return NULL;
+	}
 }; // class cELF
 
 // That's how I want the API to look, change later in source.
