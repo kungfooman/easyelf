@@ -51,36 +51,28 @@ int main() {
 		printf("file_get_contents failed..");
 		exit(1);
 	}
+	memory_rwx(image, length);
 	
 	cELF *elf = new cELF(filename);
 	
-	memory_rwx(image, length);
-
-	//unsigned char *text = image + object_get_text_fileoffset(image);
-	int segment_text = 0x34;
-	section *text = elf->getSectionByName((char *)".text");
+	// get text segment
+	cSection *text = elf->getSectionByName((char *)".text");
 	printf(".text section: fileoffset=%p\n", text->getFileOffset());
 	unsigned char *textptr = image + text->getFileOffset();
+	
+	// apply relocation records for .text inside our "image" (textptr points into it)
 	int test_a = 10;
 	int test_b = 100;
-	//*(int *)(o + 0x58 + 0x80) = (int)&ten;
+	elf->importSymbol((int)textptr, (char *)"_test_a", &test_a);
+	elf->importSymbol((int)textptr, (char *)"_test_b", &test_b);
 	
-	// apply relocation records for .text
-	*(int *)(textptr + 0x0c) = (int)&test_a;
-	*(int *)(textptr + 0x13) = (int)&test_b;
-	*(int *)(textptr + 0x28) = (int)&test_a;
-
+	// get the function pointers
 	int (*add)(int a, int b);
 	int (*mul)(int a, int b);
 	*(int *)&add = (int)textptr + elf->getSymbolByName((char *)"_add")->value;
 	*(int *)&mul = (int)textptr + elf->getSymbolByName((char *)"_mul")->value;
-	
-	
-	//external_filehdr *header = (external_filehdr *)o;
-	//printf("Number of symbols: %d\n", header->f_nsyms);
-	//printf("Symbol table offset: %.8p\n", header->f_symptr);
-	
 
+	// call it
 	printf("lib.c add(2,2) = %d\n", add(2,2));
 	printf("lib.c mul(3,3) = %d\n", mul(3,3));
 	printf("length=%d o = %s", length, image);

@@ -196,6 +196,28 @@ public:
 		}
 		return NULL;
 	}
+	
+	int getIdOfSymbol(char *name) {
+		return getSymbolByName(name)->id;
+	}
+	
+	int importSymbol(int section_text, char *name, void *value) {
+		printf("elf->importSymbol(section_text=%p, name=%s, value=%p);\n", section_text, name, value);
+		
+		
+		int id = getIdOfSymbol(name);
+		
+		for (std::map<Elf_Half, cRelocation *>::iterator i=relocations.begin(); i != relocations.end(); i++) {
+			if ((int)i->second->symbol == id) {
+				int offset = i->second->offset;
+				printf("Hook this: %p\n", offset);
+				*(int *)(section_text + offset) = (int)value;
+			}
+		}
+		
+		printf("idOfSymbol=%d\n", id);
+		return 1;
+	}
 }; // class cELF
 
 // That's how I want the API to look, change later in source.
