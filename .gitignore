@@ -1,2 +1,3 @@
 *.exe
-testlib.elf
+*.o
+*.elf
