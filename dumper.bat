@@ -1,2 +1,2 @@
-g++ dumper.cpp -o dumper.exe  -I.
+g++ dumper.cpp -o dumper.exe
 pause

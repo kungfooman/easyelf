@@ -9,8 +9,8 @@
 #include <iostream>
 #include <map>
 
-#include "elfio/elfio.hpp"
-#include "elfio/elfio_dump.hpp"
+#include "reader.hpp"
+#include "dump.hpp"
 
 using namespace ELFIO;
 

@@ -38,12 +38,12 @@ THE SOFTWARE.
 #include <deque>
 #include <typeinfo>
 
-#include <elfio/elf_types.hpp>
-#include <elfio/elfio_utils.hpp>
-#include <elfio/elfio_header.hpp>
-#include <elfio/elfio_section.hpp>
-#include <elfio/elfio_segment.hpp>
-#include <elfio/elfio_strings.hpp>
+#include "elf_types.hpp"
+#include "utils.hpp"
+#include "header.hpp"
+#include "section.hpp"
+#include "segment.hpp"
+#include "strings.hpp"
 
 #define ELFIO_HEADER_ACCESS_GET( TYPE, FNAME ) \
 TYPE                                           \
@@ -832,10 +832,10 @@ class elfio
 
 } // namespace ELFIO
 
-#include <elfio/elfio_symbols.hpp>
-#include <elfio/elfio_note.hpp>
-#include <elfio/elfio_relocation.hpp>
-#include <elfio/elfio_dynamic.hpp>
+#include "symbols.hpp"
+#include "note.hpp"
+#include "relocation.hpp"
+#include "dynamic.hpp"
 
 #ifdef _MSC_VER
 #pragma warning ( pop )

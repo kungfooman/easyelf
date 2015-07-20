@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <windows.h>
 
-#include "libeasyelf.hpp"
+#include "libeasyelf/libeasyelf.hpp"
 
 int file_get_contents(char *filename, unsigned char **out_content, int *out_filesize) {
 	FILE *file;

@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "libeasyelf.hpp"
+#include "libeasyelf/libeasyelf.hpp"
 
 int main( int argc, char** argv ) {
 	char *file1 = (char *)"testlib.elf";
