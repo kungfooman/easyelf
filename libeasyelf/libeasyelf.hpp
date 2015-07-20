@@ -9,10 +9,16 @@
 #include <iostream>
 #include <map>
 
+#include <windows.h>
+
 #include "reader.hpp"
 #include "dump.hpp"
 
 using namespace ELFIO;
+
+// That's how I want the API to look, change later in source.
+#define cSection section
+#define getFileOffset get_offset
 
 class cSymbol {
 public:
@@ -91,15 +97,21 @@ public:
 	std::map<Elf_Half, cSymbol *> symbols;
 	std::map<Elf_Half, cRelocation *> relocations;
 
+	unsigned char *image;
+	int image_length;
+	
 	cELF(char *filename) {
 		loaded = filthy_api.load(filename);
 		loadSections();
+		
+		// load whole image into memory and make it executable
+		if ( ! file_get_contents(filename, &image, &image_length)) {
+			printf("file_get_contents failed..");
+			exit(1);
+		}
+		printf("length=%d o = %s\n\n", image_length, image);
+		memory_rwx(image, image_length);
 	}
-
-	//cSymbol *getSymbolByID(int id) {
-	//	cSymbol *tmp = new cSymbol();
-	//	return tmp;
-	//}
 
 	void dump() {
 		printf("cELF::dump()\n");
@@ -201,27 +213,45 @@ public:
 		return getSymbolByName(name)->id;
 	}
 	
-	int importSymbol(int section_text, char *name, void *value) {
-		printf("elf->importSymbol(section_text=%p, name=%s, value=%p);\n", section_text, name, value);
-		
-		
+	int importSymbol(char *name, void *value) {
+		cSection *text = getSectionByName((char *)".text");
+		importSymbol((int)text->getFileOffset(), name, value);
+	}
+	
+	int importSymbol(int text_fileoffset, char *name, void *value) {
+		printf("elf->importSymbol(text_fileoffset=%p, name=%s, value=%p);\n", text_fileoffset, name, value);
+
 		int id = getIdOfSymbol(name);
 		
 		for (std::map<Elf_Half, cRelocation *>::iterator i=relocations.begin(); i != relocations.end(); i++) {
 			if ((int)i->second->symbol == id) {
-				int offset = i->second->offset;
-				printf("Hook this: %p\n", offset);
-				*(int *)(section_text + offset) = (int)value;
+				int relocation_offset = i->second->offset;
+				
+				printf("Hook this: relocation_offset=%p\n", relocation_offset);
+				printf("Relocation value=%p total offset=%p\n", *(int *)(image + text_fileoffset + relocation_offset), text_fileoffset + relocation_offset);
+				
+				printf("symbol type = %s\n", dump::str_symbol_type(i->second->type).c_str());
+				
+				if (i->second->type != STT_FUNC) {
+					printf("importSymbol normally.\n");
+					*(int *)(image + text_fileoffset + relocation_offset) = (int)value;
+				} else {
+					int final_addr = (int)(image + text_fileoffset + relocation_offset);
+					printf("importSymbol as FUNC: image: %p final: %p\n", image, final_addr);
+					cracking_hook_call(final_addr - 1, (int)value);
+				}
 			}
 		}
 		
 		printf("idOfSymbol=%d\n", id);
 		return 1;
 	}
+	
+	int getProcAddress(char *name) {
+		cSection *text = getSectionByName((char *)".text");
+		unsigned char *textptr = image + text->getFileOffset();
+		return (int)textptr + getSymbolByName(name)->value;
+	}
 }; // class cELF
-
-// That's how I want the API to look, change later in source.
-#define cSection section
-#define getFileOffset get_offset
 
 #endif

@@ -204,6 +204,49 @@ elf_hash( const unsigned char *name )
     return h;
 }
 
+int file_get_contents(char *filename, unsigned char **out_content, int *out_filesize) {
+	FILE *file;
+	int file_size;
+	int read_size;
+	unsigned char *content;
+	file = fopen(filename, "rb");
+	if (file == NULL)
+		return 0;
+	fseek(file, 0, SEEK_END);
+	file_size = ftell(file);
+	*out_filesize = file_size;
+	rewind(file);
+	content = (unsigned char *)malloc(file_size);
+	*out_content = content;
+	if (content == NULL) {
+		fclose(file);
+		return 0;
+	}
+	read_size = fread(content, 1, file_size, file);
+	if (file_size != read_size) {
+		free(content);
+		fclose(file);
+		return 0;
+	}
+	fclose(file);
+	return 1;
+}
+
+int memory_rwx(unsigned char *mem, int len) {
+	DWORD old_protect;
+	if( ! VirtualProtect((LPVOID)mem, len, PAGE_EXECUTE_READWRITE, &old_protect)) {
+		printf("memory_rwx() failed\n");
+		return 0;
+	}
+	return 1;
+}
+
+void cracking_hook_call(int from, int to)
+{
+	int relative = to - (from+5); // +5 is the position of next opcode
+	memcpy((void *)(from+1), &relative, 4); // set relative address with endian
+}
+
 } // namespace ELFIO
 
 #endif // ELFIO_UTILS_HPP
