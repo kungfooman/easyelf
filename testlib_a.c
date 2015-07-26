@@ -3,6 +3,7 @@
 
 char *someData1 = "aaaaaaaa8ej12xe61276exj811111";
 char *someData2 = "bbbbbbbb8ej12xe61276exj822222";
+char *someData3 = "cccccccc8ej12xe61276exj833333";
 
 extern int test_a;
 extern int test_b;

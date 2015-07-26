@@ -34,8 +34,12 @@ int main() {
 	elf_a->importSymbol((int)text->getFileOffset(), (char *)"_printf", (void *)printf);
 	elf_a->importSymbol((int)text->getFileOffset(), (char *)"_vprintf", (void *)vprintf);
 	
-	printf("someData1 symbol segment offset: %p\n", elf_a->getSymbolByName((char *)"_someData1")->getSegmentOffset());
-	printf("someData2 symbol segment offset: %p\n", elf_a->getSymbolByName((char *)"_someData2")->getSegmentOffset());
+	cSymbol *d1 = elf_a->getSymbolByName((char *)"_someData1");
+	cSymbol *d2 = elf_a->getSymbolByName((char *)"_someData2");
+	cSymbol *d3 = elf_a->getSymbolByName((char *)"_someData3");
+	printf("someData1 symbol segment offset: %llp symbol->getFileOffset()=%llp text=%s\n", d1->getSegmentOffset(), d1->getFileOffset(), d1->getAbsoluteFileOffset() );
+	printf("someData2 symbol segment offset: %llp symbol->getFileOffset()=%llp text=%s\n", d2->getSegmentOffset(), d2->getFileOffset(), d2->getAbsoluteFileOffset() );
+	printf("someData3 symbol segment offset: %llp symbol->getFileOffset()=%llp text=%s\n", d3->getSegmentOffset(), d3->getFileOffset(), d3->getAbsoluteFileOffset() );
 	
 	printf("should be .text : file_offset=%p\n", elf_a->getSectionByInternalID(0)->getFileOffset());
 	printf("should be .data : file_offset=%p\n", elf_a->getSectionByInternalID(1)->getFileOffset());
