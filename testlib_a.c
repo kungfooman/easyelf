@@ -1,7 +1,8 @@
 #include <stdarg.h>
 
 
-char *someData = "euxhx2ze78ej12xe61276exj8126ex7";
+char *someData1 = "aaaaaaaa8ej12xe61276exj811111";
+char *someData2 = "bbbbbbbb8ej12xe61276exj822222";
 
 extern int test_a;
 extern int test_b;

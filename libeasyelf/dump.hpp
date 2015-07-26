@@ -418,12 +418,9 @@ static const ELFIO::Elf_Xword MAX_DATA_ENTRIES = 64;
 //------------------------------------------------------------------------------
 class dump
 {
-#define DUMP_DEC_FORMAT( width ) std::setw(width) << std::setfill( ' ' ) << \
-                                 std::dec << std::right
-#define DUMP_HEX_FORMAT( width ) std::setw(width) << std::setfill( '0' ) << \
-                                 std::hex << std::right
-#define DUMP_STR_FORMAT( width ) std::setw(width) << std::setfill( ' ' ) << \
-                                 std::hex << std::left
+#define DUMP_DEC_FORMAT( width ) std::setw(width) << std::setfill( ' ' ) << std::dec << std::right
+#define DUMP_HEX_FORMAT( width ) std::setw(width) << std::setfill( '0' ) << std::hex << std::right
+#define DUMP_STR_FORMAT( width ) std::setw(width) << std::setfill( ' ' ) << std::hex << std::left
 
   public:
 //------------------------------------------------------------------------------
@@ -919,23 +916,13 @@ class dump
     }
 
     
-//------------------------------------------------------------------------------
-    static
-    std::string
-    section_flags( Elf_Xword flags )
-    {
-        std::string ret = "";
-        if ( flags & SHF_WRITE ) {
-            ret += "W";
-        }
-        if ( flags & SHF_ALLOC ) {
-            ret += "A";
-        }
-        if ( flags & SHF_EXECINSTR ) {
-            ret += "X";
-        }
 
-        return ret;
+    static std::string section_flags( Elf_Xword flags ) {
+        char ret[] = "---";
+        if ( flags & SHF_WRITE     ) ret[0] = 'W';
+        if ( flags & SHF_ALLOC     ) ret[1] = 'A';
+        if ( flags & SHF_EXECINSTR ) ret[2] = 'X';
+        return std::string(ret);
     }
 
 

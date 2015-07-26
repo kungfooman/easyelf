@@ -66,6 +66,10 @@ public:
 		}
 		std::cout.flags(original_flags);
 	}
+	
+	Elf64_Addr getSegmentOffset() {
+		return value;
+	}
 }; // class cSymbol
 
 class cRelocation {
@@ -274,6 +278,20 @@ public:
 		int procaddress = (int)textptr + sym->value;
 		printf("getProcAddress(name=%-20s): text_fileoffset=%llp symbol=%p symbol->value=%llp procaddress=%p\n", name, text->getFileOffset(), sym, sym->value, procaddress);
 		return procaddress;
+	}
+	
+	section *getSectionByInternalID(Elf_Half id) {
+        Elf_Half n = filthy_api.sections.size();
+		Elf_Half idx = 0; // only count the sections with flags (WAX), as seeable with dumper.exe
+        for ( Elf_Half i = 0; i < n; i++ ) {
+            section *sec = filthy_api.sections[i];
+			if (sec->get_flags() == 0)
+				continue;
+			if ( idx == id)
+				return sec;
+			idx++;
+        }
+		return NULL;
 	}
 }; // class cELF
 

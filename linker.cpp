@@ -34,6 +34,14 @@ int main() {
 	elf_a->importSymbol((int)text->getFileOffset(), (char *)"_printf", (void *)printf);
 	elf_a->importSymbol((int)text->getFileOffset(), (char *)"_vprintf", (void *)vprintf);
 	
+	printf("someData1 symbol segment offset: %p\n", elf_a->getSymbolByName((char *)"_someData1")->getSegmentOffset());
+	printf("someData2 symbol segment offset: %p\n", elf_a->getSymbolByName((char *)"_someData2")->getSegmentOffset());
+	
+	printf("should be .text : file_offset=%p\n", elf_a->getSectionByInternalID(0)->getFileOffset());
+	printf("should be .data : file_offset=%p\n", elf_a->getSectionByInternalID(1)->getFileOffset());
+	printf("should be .bss  : file_offset=%p\n", elf_a->getSectionByInternalID(2)->getFileOffset());
+	printf("should be .rdata: file_offset=%p\n", elf_a->getSectionByInternalID(3)->getFileOffset());
+	
 	// get the function pointers
 	int (*add)(int a, int b);
 	int (*mul)(int a, int b);

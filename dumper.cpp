@@ -3,7 +3,7 @@
 #include "libeasyelf/libeasyelf.hpp"
 
 int main( int argc, char** argv ) {
-	char *file1 = (char *)"testlib_b.elf";
+	char *file1 = (char *)"testlib_a.elf";
 	char *file2 = (char *)"cod2_lnxded";
 	cELF *elf = new cELF(file1);
 	if (!elf->loaded) {
