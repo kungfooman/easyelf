@@ -12,6 +12,11 @@ int debug_mul(int a, int b) {
 	return a * b;
 }
 
+void debug_printf(char *msg)
+{
+	printf("debug_printf: blablubb\n");
+}
+
 int main() {
 	cELF *elf_a = new cELF((char *)"testlib_a.elf");
 	
@@ -26,18 +31,25 @@ int main() {
 	//test_a = test_b = 0;
 	elf_a->importSymbol((int)text->getFileOffset(), (char *)"_test_a", &test_a);
 	elf_a->importSymbol((int)text->getFileOffset(), (char *)"_test_b", &test_b);
+	elf_a->importSymbol((int)text->getFileOffset(), (char *)"_printf", (void *)printf);
+	elf_a->importSymbol((int)text->getFileOffset(), (char *)"_vprintf", (void *)vprintf);
 	
 	// get the function pointers
 	int (*add)(int a, int b);
 	int (*mul)(int a, int b);
-	*(int *)&add = (int)textptr + elf_a->getSymbolByName((char *)"_add")->value;
-	*(int *)&mul = (int)textptr + elf_a->getSymbolByName((char *)"_mul")->value;
+	int (*printsomething)(char *msg, ...);
+	*(int *)&add = elf_a->getProcAddress((char *)"_add");
+	*(int *)&mul = elf_a->getProcAddress((char *)"_mul");
+	*(int *)&printsomething = elf_a->getProcAddress((char *)"_printsomething");
 
 	// call it
+	printf("add=%p mul=%p\n", add, mul);
 	printf("lib.c add(2,2) = %d\n", add(2,2));
 	printf("lib.c mul(3,3) = %d\n", mul(3,3));
+
+	printsomething((char *)"haiiiii! 123=%d\n", 123);
 	
-	
+
 	cELF *elf_b = new cELF((char *)"testlib_b.elf");
 	
 	int (*addmul)(int a, int b, int factor);
@@ -47,6 +59,8 @@ int main() {
 	*(int *)&addmul = elf_b->getProcAddress((char *)"_addmul");
 	printf("addmul: %p\n", addmul);
 	printf("lib.c addmul(3,3, 2) = %d\n", addmul(3, 3, 2));
+	
+	printf("Address of printf=%p real printf=%p\n", GetProcAddress(NULL, "printf"), printf);
 	
 	return 0;
 }

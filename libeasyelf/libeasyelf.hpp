@@ -200,57 +200,80 @@ public:
 		}
 		return NULL;
 	}
-	
+
 	cSymbol *getSymbolByName(char *name) {
 		for (std::map<Elf_Half, cSymbol *>::iterator i=symbols.begin(); i != symbols.end(); i++) {
 			if ( ! strcmp(i->second->name.c_str(), name))
 				return i->second;
 		}
+		Debug::LogError("getSymbolByName(name=%s): Symbol name \"%s\" doesn't exist!", name, name);
 		return NULL;
 	}
 	
 	int getIdOfSymbol(char *name) {
-		return getSymbolByName(name)->id;
+		cSymbol *sym = getSymbolByName(name);
+		if ( ! sym) {
+			Debug::LogError("getIdOfSymbol(name=%s): Could not get ID for symbol \"%s\"!", name, name);
+			return -1;
+		}
+		return sym->id;
 	}
 	
 	int importSymbol(char *name, void *value) {
 		cSection *text = getSectionByName((char *)".text");
-		importSymbol((int)text->getFileOffset(), name, value);
+		return importSymbol((int)text->getFileOffset(), name, value);
 	}
 	
 	int importSymbol(int text_fileoffset, char *name, void *value) {
-		printf("elf->importSymbol(text_fileoffset=%p, name=%s, value=%p);\n", text_fileoffset, name, value);
-
+		std::string tmp = string_format("elf->importSymbol(text_fileoffset=%p, name=%-20s, value=%p)", text_fileoffset, name, value);
+		
 		int id = getIdOfSymbol(name);
 		
+		tmp += string_format(" getIdOfSymbol=%d;\n", id);
+
+		if (id == -1) {
+			printf(tmp.c_str());
+			Debug::printLastErrors(/*depth=*/1);
+			Debug::cleanLastErrors();
+			return 0;
+		}
+
+		printf("%s", tmp.c_str());
+
 		for (std::map<Elf_Half, cRelocation *>::iterator i=relocations.begin(); i != relocations.end(); i++) {
 			if ((int)i->second->symbol == id) {
 				int relocation_offset = i->second->offset;
 				
-				printf("Hook this: relocation_offset=%p\n", relocation_offset);
-				printf("Relocation value=%p total offset=%p\n", *(int *)(image + text_fileoffset + relocation_offset), text_fileoffset + relocation_offset);
-				
-				printf("symbol type = %s\n", dump::str_symbol_type(i->second->type).c_str());
-				
+				std::string tmp = string_format("    symbol-id=%d relocation_offset=%p Relocation value=%p total offset=%p symbol_type=%s",
+					id,
+					relocation_offset,
+					*(int *)(image + text_fileoffset + relocation_offset),
+					text_fileoffset + relocation_offset,
+					dump::str_symbol_type(i->second->type).c_str()
+				);
+
 				if (i->second->type != STT_FUNC) {
-					printf("importSymbol normally.\n");
+					tmp += " >>>import symbol normally<<<\n";
 					*(int *)(image + text_fileoffset + relocation_offset) = (int)value;
 				} else {
 					int final_addr = (int)(image + text_fileoffset + relocation_offset);
-					printf("importSymbol as FUNC: image: %p final: %p\n", image, final_addr);
+					tmp += string_format(" >>>import symbol as FUNC<<< image: %p final: %p\n", image, final_addr);
 					cracking_hook_call(final_addr - 1, (int)value);
 				}
+				
+				printf("%s", tmp.c_str());
 			}
 		}
-		
-		printf("idOfSymbol=%d\n", id);
 		return 1;
 	}
 	
 	int getProcAddress(char *name) {
 		cSection *text = getSectionByName((char *)".text");
 		unsigned char *textptr = image + text->getFileOffset();
-		return (int)textptr + getSymbolByName(name)->value;
+		cSymbol *sym = getSymbolByName(name);
+		int procaddress = (int)textptr + sym->value;
+		printf("getProcAddress(name=%-20s): text_fileoffset=%llp symbol=%p symbol->value=%llp procaddress=%p\n", name, text->getFileOffset(), sym, sym->value, procaddress);
+		return procaddress;
 	}
 }; // class cELF
 

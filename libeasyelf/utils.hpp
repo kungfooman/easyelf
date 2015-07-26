@@ -23,6 +23,9 @@ THE SOFTWARE.
 #ifndef ELFIO_UTILS_HPP
 #define ELFIO_UTILS_HPP
 
+
+#include <list>
+
 #define ELFIO_GET_ACCESS( TYPE, NAME, FIELD ) \
     TYPE get_##NAME() const                   \
     {                                         \
@@ -246,6 +249,75 @@ void cracking_hook_call(int from, int to)
 	int relative = to - (from+5); // +5 is the position of next opcode
 	memcpy((void *)(from+1), &relative, 4); // set relative address with endian
 }
+
+std::string string_format(const std::string fmt, ...) {
+    int size = ((int)fmt.size()) * 2 + 50;   // Use a rubric appropriate for your code
+    std::string str;
+    va_list ap;
+    while (1) {     // Maximum two passes on a POSIX system...
+        str.resize(size);
+        va_start(ap, fmt);
+        int n = vsnprintf((char *)str.data(), size, fmt.c_str(), ap);
+        va_end(ap);
+        if (n > -1 && n < size) {  // Everything worked
+            str.resize(n);
+            return str;
+        }
+        if (n > -1)  // Needed size returned
+            size = n + 1;   // For null char
+        else
+            size *= 2;      // Guess at a larger size (OS specific)
+    }
+    return str;
+}
+
+
+class Debug {
+	public:
+	static std::list<std::string> *last_errors;
+	static void LogError(const char *error, ...);
+	static std::list<std::string> *getLastErrors();
+	static void printLastErrors(int depth);
+	static void cleanLastErrors();
+};
+
+	std::list<std::string> *Debug::last_errors = NULL;
+	void Debug::LogError(const char *error, ...) {
+		if ( ! last_errors)
+			last_errors = new std::list<std::string>();
+		va_list myargs;
+		va_start(myargs, error);
+		char tmp[1024];
+		vsnprintf(tmp, sizeof(tmp), error, myargs);
+		va_end(myargs);
+		
+		last_errors->push_back(tmp);
+		
+		//printf("!!!!!!!!!!!!ERROR!!!!!!!!!!!!!: %s\n", tmp);
+		
+	}
+	std::list<std::string> *Debug::getLastErrors() {
+		return last_errors;
+	}
+	void Debug::printLastErrors(int depth = 0) {
+		std::string depthstr;
+		for (int i=0; i<depth; i++)
+			depthstr += "    ";
+		if ( ! last_errors)
+			return;
+		int errors = last_errors->size();
+		//printf("errors: %d\n", errors);
+		int idx = 0;
+		for (std::list<std::string>::iterator i=last_errors->begin(); i != last_errors->end(); i++) {
+			printf("%serrors[%d] = %s\n", depthstr.c_str(), idx, (*i).c_str());
+			idx++;
+		}
+	}
+	void Debug::cleanLastErrors() {
+		if (last_errors)
+			delete last_errors;
+		last_errors = NULL;
+	}
 
 } // namespace ELFIO
 
