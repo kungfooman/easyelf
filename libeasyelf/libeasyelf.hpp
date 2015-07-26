@@ -41,6 +41,7 @@ public:
 	void loadRelocationsOfSection(section *sec);
 	section *getSectionByName(char *name);
 	cSymbol *getSymbolByName(char *name);
+	cSymbol *getSymbolByID(Elf_Word id);
 	int getIdOfSymbol(char *name);
 	int importSymbol(char *name, void *value);
 	int importSymbol(int text_fileoffset, char *name, void *value);
@@ -121,7 +122,7 @@ public:
 	cELF *elf;
 	
 	Elf64_Addr offset;
-	Elf_Word symbol;
+	Elf_Word sym;
 	Elf_Word type;
 	Elf_Sxword addend;
 
@@ -130,8 +131,9 @@ public:
 	}
 
 	void dump() {
-		printf("cRelocation::dump()\n");
-		std::cout << "id=" << id << " offset=" << offset << " symbol=" << symbol << " type=" << type << " addend=" << addend << std::endl;
+		cSymbol *sym_ = elf->getSymbolByID(sym);
+		printf("cRelocation::dump() id=%3d offset=%llp symbol=%3d symname=%s type=%3d addend=%3d\n", id, offset, sym, sym_->name.c_str(), type, addend);
+		//std::cout << "id=" << id << " offset=" << offset << " symbol=" << symbol << " type=" << type << " addend=" << addend << std::endl;
 	}
 }; // class cRelocation
 
@@ -225,7 +227,7 @@ void cELF::loadRelocationsOfSection(section *sec) {
 	printf("cELF::loadRelocations() name=%s len=%d\n", sec->get_name().c_str(), len);
 	for (Elf_Half i = 0; i < len; i++) {
 		cRelocation *rel = new cRelocation(i, this);
-		rsa.get_entry(i, rel->offset, rel->symbol, rel->type, rel->addend);
+		rsa.get_entry(i, rel->offset, rel->sym, rel->type, rel->addend);
 		relocations[i] = rel;
 	}
 }
@@ -246,6 +248,17 @@ cSymbol *cELF::getSymbolByName(char *name) {
 			return i->second;
 	}
 	Debug::LogError("getSymbolByName(name=%s): Symbol name \"%s\" doesn't exist!", name, name);
+	return NULL;
+}
+
+cSymbol *cELF::getSymbolByID(Elf_Word id) {
+	// gosh, i should use a goddammit vector instead of list, cba now
+	Elf_Word idx = 0;
+	for (std::map<Elf_Half, cSymbol *>::iterator i=symbols.begin(); i != symbols.end(); i++) {
+		if (idx == id)
+			return i->second;
+		idx++;
+	}
 	return NULL;
 }
 
@@ -280,7 +293,7 @@ int cELF::importSymbol(int text_fileoffset, char *name, void *value) {
 	printf("%s", tmp.c_str());
 
 	for (std::map<Elf_Half, cRelocation *>::iterator i=relocations.begin(); i != relocations.end(); i++) {
-		if ((int)i->second->symbol == id) {
+		if ((int)i->second->sym == id) {
 			int relocation_offset = i->second->offset;
 			
 			std::string tmp = string_format("    symbol-id=%d relocation_offset=%p Relocation value=%p total offset=%p symbol_type=%s",
