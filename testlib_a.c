@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdarg.h>
 
 
@@ -24,3 +25,11 @@ int printsomething(char *msg, ...)
 	va_end(myargs);
 	return ret;
 }
+
+#if 1
+void printglobals() {
+	printf("printglobals: %s\n", someData1);
+	printf("printglobals: %s\n", someData1);
+	printf("printglobals: %s\n", someData2);
+}
+#endif

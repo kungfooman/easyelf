@@ -47,6 +47,8 @@ public:
 	int importSymbol(int text_fileoffset, char *name, void *value);
 	int getProcAddress(char *name);
 	section *getSectionByInternalID(Elf_Half id);
+	void relocateTextForRdata();
+	void relocateTextForData();
 }; // class cELF
 
 class cSymbol {
@@ -132,7 +134,7 @@ public:
 
 	void dump() {
 		cSymbol *sym_ = elf->getSymbolByID(sym);
-		printf("cRelocation::dump() id=%3d offset=%llp symbol=%3d symname=%s type=%3d addend=%3d\n", id, offset, sym, sym_->name.c_str(), type, addend);
+		printf("cRelocation::dump() id=%3d offset=%llp symbol=%3d symname=%-20s type=%3d addend=%3d\n", id, offset, sym, sym_->name.c_str(), type, addend);
 		//std::cout << "id=" << id << " offset=" << offset << " symbol=" << symbol << " type=" << type << " addend=" << addend << std::endl;
 	}
 }; // class cRelocation
@@ -340,6 +342,46 @@ section *cELF::getSectionByInternalID(Elf_Half id) {
 		idx++;
 	}
 	return NULL;
+}
+
+void cELF::relocateTextForRdata() {
+	for (std::map<Elf_Half, cRelocation *>::iterator i=relocations.begin(); i != relocations.end(); i++) {
+		int *tmp;
+		cRelocation *rel = i->second;
+		if (rel->sym != 5)
+			continue;
+		tmp = (int *) ( (int)image + (int)getSectionByName((char *)".text")->getFileOffset() + rel->offset );
+		//printf("text=%p\n", *tmp);
+		*tmp += (int)image + getSectionByName((char *)".rdata")->getFileOffset();
+		//printf("text=%s\n", *tmp);
+		//i->second->dump();
+	}
+}
+
+void cELF::relocateTextForData() {
+	for (std::map<Elf_Half, cRelocation *>::iterator i=relocations.begin(); i != relocations.end(); i++) {
+		int *tmp;
+		cRelocation *rel = i->second;
+		if (rel->sym != 3)
+			continue;
+		
+		// 003D8711, 003D8726, 003D873B
+		int *toRelocate = (int *) ( (int)image + (int)getSectionByName((char *)".text")->getFileOffset() + rel->offset );
+		// 00, 00, 04
+		int indexForData = *toRelocate;
+		// 00, 00, 1E
+		int offsetFromData = *(int *) ( (int)image + (int)getSectionByName((char *)".data")->getFileOffset() + indexForData);
+		// 003D8760, 003D8760, 003D877E
+		int data = (int)image + getSectionByName((char *)".rdata")->getFileOffset() + offsetFromData;
+		
+		// the relocation code will dereference our value, so we gotta write an address
+		int *pointer = (int *) malloc(sizeof(int));
+		*pointer = data;
+		*toRelocate = (int) pointer;
+		
+		//printf("indexForData=%p offsetFromData=%p toRelocate=%p data=%p\n", indexForData, offsetFromData, toRelocate, data);
+		//i->second->dump();
+	}
 }
 
 #endif

@@ -12,9 +12,11 @@ int debug_mul(int a, int b) {
 	return a * b;
 }
 
-void debug_printf(char *msg)
-{
-	printf("debug_printf: blablubb\n");
+int debug_printf(char *msg) {
+	return printf("debug_printf: first arg=%p text=%s\n", msg, msg);
+}
+int debug_puts(char *msg) {
+	return printf("debug_puts: arg=%p text=%s\n", msg, msg);
 }
 
 int main() {
@@ -32,6 +34,7 @@ int main() {
 	elf_a->importSymbol((int)text->getFileOffset(), (char *)"_test_a", &test_a);
 	elf_a->importSymbol((int)text->getFileOffset(), (char *)"_test_b", &test_b);
 	elf_a->importSymbol((int)text->getFileOffset(), (char *)"_printf", (void *)printf);
+	elf_a->importSymbol((int)text->getFileOffset(), (char *)"_puts", (void *)puts);
 	elf_a->importSymbol((int)text->getFileOffset(), (char *)"_vprintf", (void *)vprintf);
 	
 	cSymbol *d1 = elf_a->getSymbolByName((char *)"_someData1");
@@ -50,9 +53,11 @@ int main() {
 	int (*add)(int a, int b);
 	int (*mul)(int a, int b);
 	int (*printsomething)(char *msg, ...);
+	void (*printglobals)();
 	*(int *)&add = elf_a->getProcAddress((char *)"_add");
 	*(int *)&mul = elf_a->getProcAddress((char *)"_mul");
 	*(int *)&printsomething = elf_a->getProcAddress((char *)"_printsomething");
+	*(int *)&printglobals = elf_a->getProcAddress((char *)"_printglobals");
 
 	// call it
 	printf("add=%p mul=%p\n", add, mul);
@@ -60,8 +65,16 @@ int main() {
 	printf("lib.c mul(3,3) = %d\n", mul(3,3));
 
 	printsomething((char *)"haiiiii! 123=%d\n", 123);
-	
 
+	elf_a->relocateTextForRdata();
+	elf_a->relocateTextForData();
+	printglobals();
+	printglobals();
+	printglobals();
+	
+	printf("End!\n");
+	
+	#if 0
 	cELF *elf_b = new cELF((char *)"testlib_b.elf");
 	
 	int (*addmul)(int a, int b, int factor);
@@ -73,6 +86,7 @@ int main() {
 	printf("lib.c addmul(3,3, 2) = %d\n", addmul(3, 3, 2));
 	
 	printf("Address of printf=%p real printf=%p\n", GetProcAddress(NULL, "printf"), printf);
+	#endif
 	
 	return 0;
 }
