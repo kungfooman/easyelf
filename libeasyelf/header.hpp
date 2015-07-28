@@ -27,9 +27,8 @@ THE SOFTWARE.
 
 namespace ELFIO {
 
-class elf_header
-{
-  public:
+class elf_header {
+	public:
     virtual ~elf_header() {};
     virtual bool load( std::istream& stream )       = 0;
     virtual bool save( std::ostream& stream ) const = 0;
@@ -71,10 +70,12 @@ template<> struct elf_header_impl_types<Elf64_Ehdr> {
 
 template< class T > class elf_header_impl : public elf_header
 {
-  public:
-    elf_header_impl( endianess_convertor* convertor_,
-                     unsigned char encoding )
-    {
+	public:
+	
+	T header;
+    endianess_convertor* convertor;
+
+    elf_header_impl( endianess_convertor *convertor_, unsigned char encoding ) {
         convertor = convertor_;
 
         std::fill_n( reinterpret_cast<char*>( &header ), sizeof( header ), '\0' );
@@ -97,21 +98,15 @@ template< class T > class elf_header_impl : public elf_header
         header.e_shentsize         = (*convertor)( header.e_shentsize );
     }
 
-    bool
-    load( std::istream& stream )
-    {
+    bool load( std::istream &stream ) {
         stream.seekg( 0 );
         stream.read( reinterpret_cast<char*>( &header ), sizeof( header ) );
-
         return (stream.gcount() == sizeof( header ) );
     }
 
-    bool
-    save( std::ostream& stream ) const
-    {
+    bool save( std::ostream &stream ) const {
         stream.seekp( 0 );
         stream.write( reinterpret_cast<const char*>( &header ), sizeof( header ) );
-
         return stream.good();
     }
 
@@ -135,10 +130,6 @@ template< class T > class elf_header_impl : public elf_header
     ELFIO_GET_SET_ACCESS( Elf64_Off,     sections_offset, header.e_shoff );
     ELFIO_GET_SET_ACCESS( Elf_Half,      segments_num,    header.e_phnum );
     ELFIO_GET_SET_ACCESS( Elf64_Off,     segments_offset, header.e_phoff );
-
-  private:
-    T header;
-    endianess_convertor* convertor;
 };
 
 } // namespace ELFIO
