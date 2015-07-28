@@ -415,7 +415,7 @@ static struct dynamic_tag_t {
 
 static const ELFIO::Elf_Xword MAX_DATA_ENTRIES = 64;
 
-//------------------------------------------------------------------------------
+
 class dump
 {
 #define DUMP_DEC_FORMAT( width ) std::setw(width) << std::setfill( ' ' ) << std::dec << std::right
@@ -423,7 +423,7 @@ class dump
 #define DUMP_STR_FORMAT( width ) std::setw(width) << std::setfill( ' ' ) << std::hex << std::left
 
   public:
-//------------------------------------------------------------------------------
+
     static void
     header( std::ostream& out, const elfio& reader )
     {
@@ -439,7 +439,7 @@ class dump
             << std::endl;
     }
 
-//------------------------------------------------------------------------------
+
     static void
     section_headers( std::ostream& out, const elfio& reader )
     {
@@ -467,7 +467,7 @@ class dump
             << std::endl;
     }
 
-//------------------------------------------------------------------------------
+
     static void
     section_header( std::ostream& out, Elf_Half no, const section* sec,
                     unsigned char elf_class )
@@ -515,7 +515,7 @@ class dump
         return; 
     }
 
-//------------------------------------------------------------------------------
+
     static void
     segment_headers( std::ostream& out, const elfio& reader )
     {
@@ -543,7 +543,7 @@ class dump
         out << std::endl;
     }
 
-//------------------------------------------------------------------------------
+
     static void
     segment_header( std::ostream& out, Elf_Half no, const segment* seg,
                     unsigned int elf_class )
@@ -585,7 +585,7 @@ class dump
         out.flags(original_flags);
     }
     
-//------------------------------------------------------------------------------
+
     static void
     symbol_tables( std::ostream& out, const elfio& reader )
     {
@@ -625,7 +625,7 @@ class dump
         }
     }
     
-//------------------------------------------------------------------------------
+
     static void
     symbol_table( std::ostream& out,
                   Elf_Half      no,
@@ -669,7 +669,7 @@ class dump
         out.flags(original_flags);
     }
     
-//------------------------------------------------------------------------------
+
     static void
     notes( std::ostream& out, const elfio& reader )
     {
@@ -701,7 +701,7 @@ class dump
         }
     }
 
-//------------------------------------------------------------------------------
+
     static void
     note( std::ostream&      out,
           int                no,
@@ -716,7 +716,7 @@ class dump
             << std::endl;
     }
     
-//------------------------------------------------------------------------------
+
     static void
     dynamic_tags( std::ostream& out, const elfio& reader )
     {
@@ -747,7 +747,7 @@ class dump
         }
     }
     
-//------------------------------------------------------------------------------
+
     static void
     dynamic_tag( std::ostream& out,
                  int           no,
@@ -769,7 +769,7 @@ class dump
             out << std::endl;
     }
 
-//------------------------------------------------------------------------------
+
     static void
     section_data( std::ostream& out, const section* sec )
     {
@@ -798,7 +798,7 @@ class dump
         return; 
     }
 
-//------------------------------------------------------------------------------
+
     static void
     section_datas( std::ostream& out, const elfio& reader )
     {
@@ -821,7 +821,7 @@ class dump
         out << std::endl;
     }
 
-//------------------------------------------------------------------------------
+
     static void
     segment_data( std::ostream& out, Elf_Half no, const segment* seg )
     {
@@ -850,7 +850,7 @@ class dump
         return; 
     }
 
-//------------------------------------------------------------------------------
+
     static void
     segment_datas( std::ostream& out, const elfio& reader )
     {
@@ -871,7 +871,7 @@ class dump
     }
     
   
-//------------------------------------------------------------------------------
+
     template< typename T, typename K >
     std::string
     static
@@ -889,7 +889,7 @@ class dump
     }
 
 
-//------------------------------------------------------------------------------
+
     template< typename T, typename K >
     static
     std::string
@@ -906,16 +906,11 @@ class dump
     }
 
 
-//------------------------------------------------------------------------------
+
     template< typename T >
-    static
-    std::string
-    format_assoc( const T& table, const char key )
-    {
+    static std::string format_assoc( const T& table, const char key ) {
         return format_assoc( table, (const int)key );
     }
-
-    
 
     static std::string section_flags( Elf_Xword flags ) {
         char ret[] = "---";
@@ -926,14 +921,11 @@ class dump
     }
 
 
-//------------------------------------------------------------------------------
-#define STR_FUNC_TABLE( name )                    \
-    template< typename T >                        \
-    static                                        \
-    std::string                                   \
-    str_##name( const T key )                     \
-    {                                             \
-        return format_assoc( name##_table, key ); \
+
+#define STR_FUNC_TABLE( name )                     \
+    template< typename T >                         \
+    static std::string str_##name( const T key ) { \
+        return format_assoc( name##_table, key );  \
     }
 
     STR_FUNC_TABLE( class )

@@ -19,83 +19,61 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-
 #ifndef ELFIO_STRINGS_HPP
 #define ELFIO_STRINGS_HPP
-
 #include <cstdlib>
 #include <cstring>
 #include <string>
 
 namespace ELFIO {
-
-//------------------------------------------------------------------------------
-class string_section_accessor
-{
-  public:
-//------------------------------------------------------------------------------
-    string_section_accessor( section* section_ ) :
-                             string_section( section_ )
-    {
-    }
-
-
-//------------------------------------------------------------------------------
-    const char*
-    get_string( Elf_Word index ) const
-    {
-        if ( index < string_section->get_size() ) {
-            const char* data = string_section->get_data();
-            if ( 0 != data ) {
-                return data + index;
-            }
-        }
-
-        return 0;
-    }
-
-
-//------------------------------------------------------------------------------
-    Elf_Word
-    add_string( const char* str )
-    {
-        // Strings are addeded to the end of the current section data
-        Elf_Word current_position = (Elf_Word)string_section->get_size();
-
-        if ( current_position == 0 ) {
-            char empty_string[1] = {'\0'};
-            string_section->append_data( empty_string, 1 );
-            current_position++;
-        }
-        string_section->append_data( str, (Elf_Word)std::strlen( str ) + 1 );
-
-        return current_position;
-    }
-
-
-//------------------------------------------------------------------------------
-    Elf_Word
-    add_string( const std::string& str )
-    {
-        // Strings are addeded to the end of the current section data
-        Elf_Word current_position = (Elf_Word)string_section->get_size();
-
-        char empty_string[1] = {'\0'};
-        if ( current_position == 0 ) {
-            string_section->append_data( empty_string, 1 );
-            current_position++;
-        }
-        string_section->append_data( str );
-        string_section->append_data( empty_string, 1 );
-
-        return current_position;
-    }
-
-//------------------------------------------------------------------------------
-  private:
-    section* string_section;
+	
+class string_section_accessor {
+	public:
+	section *string_section;
+	string_section_accessor( section *section_ );
+	const char *get_string( Elf_Word index ) const;
+	Elf_Word add_string( const char *str );
+	Elf_Word add_string( const std::string &str );
 };
 
-} // namespace ELFIO
+string_section_accessor::string_section_accessor( section *section_ ) {
+	string_section = section_;
+}
 
+const char *string_section_accessor::get_string( Elf_Word index ) const {
+	if ( index < string_section->get_size() ) {
+		const char* data = string_section->get_data();
+		if ( 0 != data ) {
+			return data + index;
+		}
+	}
+	return 0;
+}
+
+Elf_Word string_section_accessor::add_string( const char *str ) {
+	// Strings are addeded to the end of the current section data
+	Elf_Word current_position = (Elf_Word)string_section->get_size();
+	if ( current_position == 0 ) {
+		char empty_string[1] = {'\0'};
+		string_section->append_data( empty_string, 1 );
+		current_position++;
+	}
+	string_section->append_data( str, (Elf_Word)std::strlen( str ) + 1 );
+	return current_position;
+}
+
+Elf_Word string_section_accessor::add_string( const std::string &str ) {
+	// Strings are addeded to the end of the current section data
+	Elf_Word current_position = (Elf_Word)string_section->get_size();
+	char empty_string[1] = {'\0'};
+	if ( current_position == 0 ) {
+		string_section->append_data( empty_string, 1 );
+		current_position++;
+	}
+	string_section->append_data( str );
+	string_section->append_data( empty_string, 1 );
+	return current_position;
+}
+
+} // namespace ELFIO
 #endif // ELFIO_STRINGS_HPP
